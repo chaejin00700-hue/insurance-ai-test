@@ -39,22 +39,13 @@ with st.sidebar:
                 st.error(f"조회 오류: {e}")
 
     st.divider()
-    st.subheader("🛠️ 2) 심사에 사용할 모델 선택")
-    preset_models = [
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gemini-1.5-flash-latest",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-8b",
-        "gemini-1.5-pro-latest",
-        "✏️ 직접 입력..."
-    ]
-    model_choice = st.selectbox("AI 모델 선택 (오류 나면 다른 모델로 바꿔서 재시도)", preset_models)
-    if model_choice == "✏️ 직접 입력...":
-        selected_model = st.text_input("모델명 직접 입력", value="gemini-1.5-flash-latest")
-    else:
-        selected_model = model_choice
-    st.caption(f"현재 선택: `{selected_model}`")
+   st.subheader("🛠️ 2) 심사에 사용할 모델 (직접 입력)")
+selected_model = st.text_input(
+    "모델명을 입력하세요 (위 '모델 목록 조회' 결과에서 이름을 복사해 붙여넣으세요)",
+    value="gemini-2.0-flash-lite"
+)
+st.caption(f"현재 선택: `{selected_model}`")
+ 
 
 st.subheader("📋 심사 조건 설정")
 col1, col2 = st.columns(2)
