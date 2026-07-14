@@ -41,8 +41,8 @@ with st.sidebar:
     st.divider()
     st.subheader("🛠️ 2) 심사에 사용할 모델")
     selected_model = st.text_input(
-        "모델명을 직접 입력하세요 (위 조회 결과에서 복사해 붙여넣기)",
-        value="gemini-2.0-flash-lite"
+        "모델명을 직접 입력하세요",
+        value="gemini-flash-latest"
     )
     st.caption(f"현재 선택: `{selected_model}`")
 
@@ -51,33 +51,46 @@ col1, col2 = st.columns(2)
 with col1:
     insurance_type = st.selectbox("보험 종류", ["실손의료비", "정기보험", "암보험", "입원일당", "수술비"])
 with col2:
-    document_type = st.selectbox("서류 종류", ["진단서", "입퇴원확인서", "의료비영수증", "수술확인서", "처방전"])
+    document_type = st.selectbox(
+        "서류 종류",
+        ["종합(여러 서류 함께 심사)", "진단서", "입퇴원확인서", "의료비영수증", "수술확인서", "처방전"]
+    )
 
-st.subheader("📎 서류 업로드")
+st.subheader("📎 서류 업로드 (여러 장 동시 업로드 가능)")
 st.warning("⚠️ 반드시 개인정보(이름/주민번호/연락처)를 가린 테스트용 서류만 업로드!")
 
-uploaded_file = st.file_uploader("서류 사진을 업로드하세요", type=['jpg', 'jpeg', 'png'])
+uploaded_files = st.file_uploader(
+    "서류 사진을 업로드하세요 (여러 장 선택 가능)",
+    type=['jpg', 'jpeg', 'png'],
+    accept_multiple_files=True
+)
 
-if uploaded_file and api_key:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="업로드된 서류", use_container_width=True)
+if uploaded_files and api_key:
+    st.info(f"📄 총 {len(uploaded_files)}장의 서류가 업로드되었습니다.")
+
+    images = []
+    for i, f in enumerate(uploaded_files, start=1):
+        img = Image.open(f)
+        images.append(img)
+        st.image(img, caption=f"서류 {i}: {f.name}", use_container_width=True)
 
     if st.button("🔍 AI 자동심사 시작", type="primary", use_container_width=True):
-        with st.spinner(f"[{selected_model}] 모델로 분석 중... (10~20초 소요)"):
+        with st.spinner(f"[{selected_model}] 모델로 {len(images)}장의 서류를 종합 분석 중... (10~40초 소요)"):
             try:
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel(selected_model)
 
                 prompt = f"""
 당신은 푸본현대생명 보험금 심사 전문가입니다.
-아래 조건과 업로드된 서류를 참고하여 심사 결과를 정리해주세요.
+아래 조건과 업로드된 총 {len(images)}장의 서류를 모두 종합적으로 참고하여 심사 결과를 정리해주세요.
 
 [심사 조건]
 - 보험 종류: {insurance_type}
 - 서류 종류: {document_type}
+- 제출 서류 수: {len(images)}장
 
 【추출 정보】
-1. 진단명 및 질병코드(KCD)
+1. 진단명 및 질병코드(KCD) - 어떤 서류에서 확인했는지 함께 명시
 2. 입원/통원 구분 및 일수
 3. 총 진료비 및 본인부담금
 4. 주요 치료 내용 (수술, 시술 등)
@@ -90,12 +103,14 @@ if uploaded_file and api_key:
 【심사자 코멘트】
 전체 의견을 2~3줄로 요약해주세요.
 
+※ 여러 장의 서류 내용을 서로 교차 검증하여 종합적으로 판단하세요.
 ※ 서류에서 확인 불가한 항목은 "확인불가"로 표기
 ※ 이름/주민번호 등 개인정보는 절대 출력하지 마세요
 """
-                response = model.generate_content([prompt, image])
+                contents = [prompt] + images
+                response = model.generate_content(contents)
 
-                st.success(f"✅ 심사 분석 완료! (사용 모델: {selected_model})")
+                st.success(f"✅ {len(images)}장 서류 심사 분석 완료! (사용 모델: {selected_model})")
                 st.markdown("---")
                 st.markdown(response.text)
                 st.markdown("---")
@@ -113,7 +128,7 @@ if uploaded_file and api_key:
                 st.error(f"❌ [{selected_model}] 오류\n\n상세: {e}")
                 st.info("👈 좌측 사이드바에서 모델명을 바꾼 후 다시 버튼만 눌러보세요! (GitHub 재수정 불필요)")
 
-elif uploaded_file and not api_key:
+elif uploaded_files and not api_key:
     st.warning("👈 왼쪽 상단 '>>' 메뉴를 열어 API Key를 먼저 입력해주세요!")
 
 st.divider()
