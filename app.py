@@ -52,7 +52,7 @@ if uploaded_file and api_key:
         with st.spinner("AI가 서류를 분석 중입니다... (10~20초 소요)"):
             try:
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                model = genai.GenerativeModel('gemini-2.0-flash')
 
                 prompt = f"""
 당신은 푸본현대생명 보험금 심사 전문가입니다.
