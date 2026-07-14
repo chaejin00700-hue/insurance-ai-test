@@ -18,7 +18,7 @@ with st.sidebar:
     st.markdown("[API 키 발급받기](https://aistudio.google.com)")
 
     st.divider()
-    st.subheader("🔍 1) 사용 가능한 모델 확인 (선택)")
+    st.subheader("🔍 1) 사용 가능한 모델 확인")
     if st.button("모델 목록 조회"):
         if not api_key:
             st.warning("먼저 API 키를 입력해주세요!")
@@ -39,13 +39,12 @@ with st.sidebar:
                 st.error(f"조회 오류: {e}")
 
     st.divider()
-   st.subheader("🛠️ 2) 심사에 사용할 모델 (직접 입력)")
-selected_model = st.text_input(
-    "모델명을 입력하세요 (위 '모델 목록 조회' 결과에서 이름을 복사해 붙여넣으세요)",
-    value="gemini-2.0-flash-lite"
-)
-st.caption(f"현재 선택: `{selected_model}`")
- 
+    st.subheader("🛠️ 2) 심사에 사용할 모델")
+    selected_model = st.text_input(
+        "모델명을 직접 입력하세요 (위 조회 결과에서 복사해 붙여넣기)",
+        value="gemini-2.0-flash-lite"
+    )
+    st.caption(f"현재 선택: `{selected_model}`")
 
 st.subheader("📋 심사 조건 설정")
 col1, col2 = st.columns(2)
@@ -112,7 +111,7 @@ if uploaded_file and api_key:
 
             except Exception as e:
                 st.error(f"❌ [{selected_model}] 오류\n\n상세: {e}")
-                st.info("👈 좌측 사이드바에서 다른 모델을 선택한 후 다시 '🔍 AI 자동심사 시작' 버튼만 눌러보세요! (GitHub 재수정 불필요)")
+                st.info("👈 좌측 사이드바에서 모델명을 바꾼 후 다시 버튼만 눌러보세요! (GitHub 재수정 불필요)")
 
 elif uploaded_file and not api_key:
     st.warning("👈 왼쪽 상단 '>>' 메뉴를 열어 API Key를 먼저 입력해주세요!")
